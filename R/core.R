@@ -1,8 +1,6 @@
 #' Assign a Value to an Existing Name inside Another Package
 #'
 #' ... replacing what is already there.
-#' You must restart R in order reload the original.
-#'
 #'
 #' @param pkg name of package; <character>
 #' @param name name of the object; <character>
@@ -25,5 +23,42 @@ swap <- function(pkg, name, value){
   invisible(value)
 }
 
+#' Replace All Functions in Package with a Dummy
+#'
+#' Dummy function gets called and does nothing.
+#' This is useful, for example, when executing a program that contains spurious logging code, which you want to universally suppress.
+#'
+#' @param name name of the object; <character>
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#'
+#' \dontrun{
+#' ## original code
+#' do_something <- function(){
+#'   logger::log_info("Doing Something")
+#'   # ...
+#' }
+#'
+#' ## hollow out the package
+#' hollow("logger")
+#'
+#' ## enjoy the peace
+#' do_something()
+#'
+#' }
+hollow <- function(pkg){
+  pkg_env <- asNamespace(pkg)
+
+  fn_names <- names(Filter(is.function, mget(ls(pkg_env),
+                                             pkg_env)))
+  lapply(fn_names, function(fn_name){
+    swap(pkg, fn_name, function(...) invisible())
+  })
+
+  invisible()
+}
 
 
